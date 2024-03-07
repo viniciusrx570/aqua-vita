@@ -48,7 +48,8 @@ model lotes {
   produtoId        Int
   dataProducao     DateTime
   dataValidade     DateTime
-  MovimentoEstoque MovimentoEstoque[]
+  movimentoEstoque MovimentoEstoque[]
+  item             ItensVenda[]
 }
 
 //movimentos de estoque 
@@ -71,20 +72,24 @@ model Motivo {
 
 //vendas 
 model Vendas {
-  id         Int      @id
+  id         Int          @id() @default(autoincrement())
   clienteId  Int
-  cliente    Clientes @relation(fields: [clienteId], references: [id])
-  data       DateTime @default(now())
+  cliente    Clientes     @relation(fields: [clienteId], references: [id])
+  data       DateTime     @default(now())
   status     String
+  itemId     Int
+  item       ItensVenda[]
   valorTotal Float
 }
 
 //item vendas
 model ItensVenda {
-  id         Int   @id
+  id         Int    @id @default(autoincrement())
   vendasId   Int
+  vendas     Vendas @relation(fields: [vendasId], references: [id])
+  lote       lotes  @relation(fields: [loteId], references: [id])
   loteId     Int
-  quantidade Int   @default(0)
-  valor      Float @default(0.0)
-  ValorTotal Float @default(0.0)
+  quantidade Int    @default(0)
+  valor      Float  @default(0.0)
+  ValorTotal Float  @default(0.0)
 }
