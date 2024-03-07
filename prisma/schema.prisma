@@ -1,0 +1,90 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgres"
+  url      = env("DATABASE_URL")
+}
+
+// criar tabela:
+//clientes
+model Clientes {
+  id              Int      @id @default(autoincrement())
+  nome            String
+  cpf             String?
+  data_nascimento String?
+  sexo            String?
+  venda           Vendas[]
+}
+
+//produtos
+model Produtos {
+  id                 Int               @id @default(autoincrement())
+  nome               String
+  descricao          String
+  valor              Float
+  tipo               String
+  quantidade         Int
+  embalagem          String
+  lote               lotes             @relation(fields: [loteId], references: [id])
+  loteId             Int
+  MovimentoEstoque   MovimentoEstoque? @relation(fields: [movimentoEstoqueId], references: [id])
+  movimentoEstoqueId Int?
+}
+
+//lotes
+
+model lotes {
+  id               Int                @id @default(autoincrement())
+  codigo           String
+  produtos         Produtos[]
+  produtoId        Int
+  dataProducao     DateTime
+  dataValidade     DateTime
+  MovimentoEstoque MovimentoEstoque[]
+}
+
+//movimentos de estoque 
+model MovimentoEstoque {
+  id         Int        @id @default(autoincrement())
+  loteId     Int
+  lote       lotes      @relation(fields: [loteId], references: [id])
+  tipo       String?
+  quantidade Int
+  data       DateTime   @default(now())
+  motivo     Motivo[]
+  motivoId   Int
+  Produtos   Produtos[]
+}
+
+model Motivo {
+  id               Int                @id @default(autoincrement())
+  MovimentoEstoque MovimentoEstoque[]
+}
+
+//vendas 
+model Vendas {
+  id         Int      @id
+  clienteId  Int
+  cliente    Clientes @relation(fields: [clienteId], references: [id])
+  data       DateTime @default(now())
+  status     String
+  valorTotal Float
+}
+
+//item vendas
+model ItensVenda {
+  id         Int   @id
+  vendasId   Int
+  loteId     Int
+  quantidade Int   @default(0)
+  valor      Float @default(0.0)
+  ValorTotal Float @default(0.0)
+}
