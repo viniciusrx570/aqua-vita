@@ -9,7 +9,7 @@ generator client {
 }
 
 datasource db {
-  provider = "postgres"
+  provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 
@@ -26,41 +26,42 @@ model Clientes {
 
 //produtos
 model Produtos {
-  id                 Int               @id @default(autoincrement())
+  id                 Int               @id @unique @default(autoincrement())
   nome               String
   descricao          String
-  valor              Float
+  valor              Float             @default(0.0)
   tipo               String
-  quantidade         Int
+  quantidade         Float             @default(0.0)
   embalagem          String
   lote               lotes             @relation(fields: [loteId], references: [id])
-  loteId             Int
+  loteId             Int               @unique
   MovimentoEstoque   MovimentoEstoque? @relation(fields: [movimentoEstoqueId], references: [id])
-  movimentoEstoqueId Int?
+  movimentoEstoqueId Int?              @unique
 }
 
 //lotes
 
 model lotes {
-  id               Int                @id @default(autoincrement())
+  id               Int                @id @unique @default(autoincrement())
   codigo           String
   produtos         Produtos[]
-  produtoId        Int
+  produtoId        Int                @unique
   dataProducao     DateTime
   dataValidade     DateTime
-  MovimentoEstoque MovimentoEstoque[]
+  movimentoEstoque MovimentoEstoque[]
+  item             ItensVenda[]
 }
 
 //movimentos de estoque 
 model MovimentoEstoque {
   id         Int        @id @default(autoincrement())
-  loteId     Int
+  loteId     Int        @unique
   lote       lotes      @relation(fields: [loteId], references: [id])
   tipo       String?
   quantidade Int
   data       DateTime   @default(now())
   motivo     Motivo[]
-  motivoId   Int
+  motivoId   Int        @unique
   Produtos   Produtos[]
 }
 
@@ -71,20 +72,24 @@ model Motivo {
 
 //vendas 
 model Vendas {
-  id         Int      @id
-  clienteId  Int
-  cliente    Clientes @relation(fields: [clienteId], references: [id])
-  data       DateTime @default(now())
+  id         Int          @id() @default(autoincrement())
+  clienteId  Int          @unique
+  cliente    Clientes     @relation(fields: [clienteId], references: [id])
+  data       DateTime     @default(now())
   status     String
+  itemId     Int          @unique
+  item       ItensVenda[]
   valorTotal Float
 }
 
 //item vendas
 model ItensVenda {
-  id         Int   @id
+  id         Int    @id @default(autoincrement())
   vendasId   Int
-  loteId     Int
-  quantidade Int   @default(0)
-  valor      Float @default(0.0)
-  ValorTotal Float @default(0.0)
+  vendas     Vendas @relation(fields: [vendasId], references: [id])
+  lote       lotes  @relation(fields: [loteId], references: [id])
+  loteId     Int    @unique
+  quantidade Int    @default(0)
+  valor      Float  @default(0.0)
+  ValorTotal Float  @default(0.0)
 }
